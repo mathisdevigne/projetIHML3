@@ -2,10 +2,13 @@ package jeuDesFourmis.controlleur;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -17,7 +20,9 @@ import jeuDesFourmis.vue.Case;
 import jeuDesFourmis.vue.Interface;
 import jeuDesFourmis.vue.Terrain;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class Controlleur extends Application {
 
@@ -62,6 +67,24 @@ public class Controlleur extends Application {
         nbIteProperty = new SimpleIntegerProperty(0);
         nbGraineProperty = new SimpleIntegerProperty(0);
         t.getMaxNbGraine().bind(root.getCapCase().getValueProperty());
+
+        nbGraineProperty.bind(new IntegerBinding() {
+            final List<IntegerProperty> listProperty;
+            {
+                listProperty = new ArrayList<>();
+                for (int x = 0; x <100 ; x++) {
+                    for (int y = 0; y < 100; y++) {
+                        IntegerProperty p = t.getCases(x,y).nbGraineProperty();
+                        bind(p);
+                        listProperty.add(p);
+                    }
+                }
+            }
+            @Override
+            protected int computeValue() {
+                return listProperty.stream().map(ObservableIntegerValue::get).reduce(0,Integer::sum);
+            }
+        });
         playService = new Service<Void>() {
             @Override
             protected Task<Void> createTask() {
@@ -79,6 +102,13 @@ public class Controlleur extends Application {
                                     t.resetFourmis();
                                     f.getLesFourmis().forEach(fourmi -> t.ajouteFourmi(fourmi.getX(), fourmi.getY(), fourmi.porte()));
                                     nbIteProperty.set(nbIteProperty.get()+1);
+                                    for (int x = 0; x <size ; x++) {
+                                        for (int y = 0; y < size; y++) {
+                                            if(f.getQteGraines(x,y) != t.getCases(x,y).getNbGraines()){
+                                                t.getCases(x,y).setNbGraine(f.getQteGraines(x,y)); ;
+                                            }
+                                        }
+                                    }
                                 });
                             }
                             Platform.runLater(()->nbFourmisProperty.set(f.getLesFourmis().size()));
@@ -128,10 +158,11 @@ public class Controlleur extends Application {
             if(t.isPaused()) {
                 int x = (int) scrollEvent.getX() / 10;
                 int y = (int) scrollEvent.getY() / 10;
-                int newQteGraine = f.getQteGraines(x,y) + (scrollEvent.getDeltaY()>0?1:-1);
-                f.setQteGraines(x,y,newQteGraine);
-                t.getCases(x,y).setNbGraine(newQteGraine);
-                System.out.println(newQteGraine);
+                if(!f.getMur(x,y)){
+                    int newQteGraine = f.getQteGraines(x,y) + (scrollEvent.getDeltaY()>0?1:-1);
+                    f.setQteGraines(x,y,newQteGraine);
+                    t.getCases(x,y).setNbGraine(newQteGraine);
+                }
             }
         });
         root.getQuit().setOnAction(e ->{
@@ -200,7 +231,6 @@ public class Controlleur extends Application {
         root.getCapCase().getValueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                t.getMaxNbGraine().set(newValue.intValue());
                 f.setqMax(newValue.intValue());
                 int size = t.getSize();
                 for (int x = 0; x <size ; x++) {

@@ -2,10 +2,7 @@ package jeuDesFourmis.vue;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
@@ -73,6 +70,9 @@ public class Case extends Rectangle {
 
     public int getNbGraines() {
         return nbGraines.get();
+    }
+    public IntegerProperty nbGraineProperty() {
+        return nbGraines;
     }
 
     public void changeGraine(int nbChange){
