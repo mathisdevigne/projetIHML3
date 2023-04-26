@@ -3,6 +3,7 @@ package jeuDesFourmis.model;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 /**
  * Classe de gestion de la fourmiliere
@@ -17,7 +18,7 @@ import java.util.Iterator;
  
 public class Fourmiliere {
  
-  private int largeur, hauteur ;
+  private int largeur, hauteur , defSize = 50;
   // Le nombre maximal de graines par cases  
   private int qMax ;
 
@@ -71,8 +72,19 @@ public class Fourmiliere {
     for (int i =0 ; i < hauteur+2 ; i++)
       for (int j =0 ; j < largeur+2; j++)
 	    qteGraines [i][j]=0 ;
+
+    changeSize(defSize);
   }
-    
+
+  public void changeSize( int size){
+      this.largeur = size;
+      this.hauteur = size;
+      List<Fourmi> plusFourmi = lesFourmis.stream().filter(fourmi -> fourmi.getY()>size||fourmi.getX()>size).collect(Collectors.toList());
+      plusFourmi.forEach(fourmi -> {
+          this.fourmis[fourmi.getX()][fourmi.getY()] = false;
+      });
+      lesFourmis.removeAll(plusFourmi);
+  }
   /**
    * Retourne la largeur de la fourmiliere
    * @return 			la largeur
@@ -143,8 +155,8 @@ public class Fourmiliere {
   }
 
   public void resetFourmiAndGraines(){
-      for (int x = 0; x <largeur ; x++) {
-          for (int y = 0; y < hauteur; y++) {
+      for (int x = 0; x <=largeur ; x++) {
+          for (int y = 0; y <= hauteur; y++) {
               fourmis[x][y] = false;
               qteGraines[x][y] = 0;
           }
@@ -264,18 +276,20 @@ public class Fourmiliere {
 	// On tire au sort jusqu'a ce qu'on soit tombe sur une case vide
 	// ou bien qu'on ait essayé 99 fois. 
       } while((murs[deltaY][deltaX] || fourmis[deltaY][deltaX]) && cptEssai < 100);
-      fourmis[posY][posX]=false; 
-      fourmis[deltaY][deltaX]=true; 
-      f.setX(deltaX);
-      f.setY(deltaY);
-      // la fourmi pose ? 
-      if (f.porte() && qteGraines[deltaY][deltaX]<qMax){
-        if (Math.random()<Fourmi.probaPose(compteGrainesVoisines(deltaX,deltaY))){
-          f.pose();
-          qteGraines[deltaY][deltaX]++;
+        if(deltaY>0&&deltaX>0&&deltaX<=largeur&&deltaY<=largeur){
+            fourmis[posY][posX]=false;
+            fourmis[deltaY][deltaX]=true;
+            f.setX(deltaX);
+            f.setY(deltaY);
+            // la fourmi pose ?
+            if (f.porte() && qteGraines[deltaY][deltaX]<qMax){
+                if (Math.random()<Fourmi.probaPose(compteGrainesVoisines(deltaX,deltaY))){
+                    f.pose();
+                    qteGraines[deltaY][deltaX]++;
+                }
+
+            };
         }
-	
-      };
     }
   }
 

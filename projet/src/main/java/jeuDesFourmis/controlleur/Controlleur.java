@@ -50,17 +50,17 @@ public class Controlleur extends Application {
     private void changeMur(int x, int y){
         if (isValid(x, y)) {
             Case c = t.getCases(x, y);
-            boolean isMur = f.getMur(x, y);
+            boolean isMur = f.getMur(x+1, y+1);
             if (c.getNbGraines() == 0) {
                 c.setMur(!isMur);
-                f.setMur(x, y, !isMur);
+                f.setMur(x+1, y+1, !isMur);
             }
         }
     }
 
     @Override
     public void start(Stage primaryStage){
-        f = new Fourmiliere(50, 50, defQGraineMax);
+        f = new Fourmiliere(100, 100, defQGraineMax);
         root = new Interface(defQGraineMax);
         t = root.getTerrain();
         nbFourmisProperty = new SimpleIntegerProperty(0);
@@ -100,12 +100,12 @@ public class Controlleur extends Application {
                                 Platform.runLater(() -> {
                                     int size = t.getSize();
                                     t.resetFourmis();
-                                    f.getLesFourmis().forEach(fourmi -> t.ajouteFourmi(fourmi.getX(), fourmi.getY(), fourmi.porte()));
+                                    f.getLesFourmis().stream().filter(fourmi -> fourmi.getX()>0 && fourmi.getY()>0 &&fourmi.getX() <=t.getSize()&&fourmi.getX()<=t.getSize()).forEach(fourmi -> t.ajouteFourmi(fourmi.getX()-1, fourmi.getY()-1, fourmi.porte()));
                                     nbIteProperty.set(nbIteProperty.get()+1);
                                     for (int x = 0; x <size ; x++) {
                                         for (int y = 0; y < size; y++) {
-                                            if(f.getQteGraines(x,y) != t.getCases(x,y).getNbGraines()){
-                                                t.getCases(x,y).setNbGraine(f.getQteGraines(x,y)); ;
+                                            if(f.getQteGraines(x+1,y+1) != t.getCases(x,y).getNbGraines()){
+                                                t.getCases(x,y).setNbGraine(f.getQteGraines(x+1,y+1)); ;
                                             }
                                         }
                                     }
@@ -123,17 +123,20 @@ public class Controlleur extends Application {
             if(t.isPaused()) {
                 int x = (int) mouseEvent.getX() / 10;
                 int y = (int) mouseEvent.getY() / 10;
-                if(mouseEvent.isShiftDown()) {
-                    if (!f.getMur(x, y)) {
-                        f.ajouteFourmi(x, y);
-                        t.ajouteFourmi(x, y, false);
+                if(isValid(x,y)){
+                    if(mouseEvent.isShiftDown()) {
+                        if (!f.getMur(x+1, y+1)) {
+                            f.ajouteFourmi(x+1, y+1);
+                            t.ajouteFourmi(x, y, false);
+                        }
+                    }
+                    else{
+                        if(!f.contientFourmi(x+1,y+1)){
+                            changeMur(x, y);
+                        }
                     }
                 }
-                else{
-                    if(!f.contientFourmi(x,y)){
-                        changeMur(x, y);
-                    }
-                }
+
             }
         });
 
@@ -141,15 +144,17 @@ public class Controlleur extends Application {
             if(t.isPaused()) {
                 int x = (int) mouseEvent.getX() / 10;
                 int y = (int) mouseEvent.getY() / 10;
-                if(mouseEvent.isShiftDown()) {
-                    if (!f.getMur(x, y)) {
-                        f.ajouteFourmi(x, y);
-                        t.ajouteFourmi(x, y, false);
+                if(isValid(x,y)){
+                    if(mouseEvent.isShiftDown()) {
+                        if (!f.getMur(x+1, y+1)) {
+                            f.ajouteFourmi(x+1, y+1);
+                            t.ajouteFourmi(x, y, false);
+                        }
                     }
-                }
-                else{
-                    if(!t.isDerniereCase(t.getCases(x,y))&&!f.contientFourmi(x,y))
-                        changeMur(x, y);
+                    else{
+                        if(!t.isDerniereCase(t.getCases(x,y))&&!f.contientFourmi(x+1,y+1))
+                            changeMur(x, y);
+                    }
                 }
             }
         });
@@ -158,11 +163,14 @@ public class Controlleur extends Application {
             if(t.isPaused()) {
                 int x = (int) scrollEvent.getX() / 10;
                 int y = (int) scrollEvent.getY() / 10;
-                if(!f.getMur(x,y)){
-                    int newQteGraine = f.getQteGraines(x,y) + (scrollEvent.getDeltaY()>0?1:-1);
-                    f.setQteGraines(x,y,newQteGraine);
-                    t.getCases(x,y).setNbGraine(newQteGraine);
+                if(isValid(x,y)){
+                    if(!f.getMur(x+1,y+1)){
+                        int newQteGraine = f.getQteGraines(x+1,y+1) + (scrollEvent.getDeltaY()>0?1:-1);
+                        f.setQteGraines(x+1,y+1,newQteGraine);
+                        t.getCases(x,y).setNbGraine(newQteGraine);
+                    }
                 }
+
             }
         });
         root.getQuit().setOnAction(e ->{
@@ -206,15 +214,36 @@ public class Controlleur extends Application {
             f.resetFourmiAndGraines();
             for (int x = 0; x <size ; x++) {
                 for (int y = 0; y < size; y++) {
-                    f.setMur(x,y,false);
+                    f.setMur(x+1,y+1,false);
                     Case c = t.getCases(x,y);
                     c.setMur(false);
                     c.setNbGraine(0);
                 }
             }
-            nbGraineProperty.set(0);
             nbIteProperty.set(0);
             nbFourmisProperty.set(0);
+        });
+        root.getResetAlea().setOnAction(event -> {
+            int size = t.getSize();
+            t.resetFourmis();
+            f.resetFourmiAndGraines();
+            for (int x = 0; x <size ; x++) {
+                for (int y = 0; y < size; y++) {
+                    Case c = t.getCases(x,y);
+                    boolean isMur = Math.random()>0.9;
+                    c.setMur(isMur);
+                    f.setMur(x+1,y+1,isMur);
+
+                    int nbGraine = (int) (Math.random()*t.getMaxNbGraine().get());
+                    c.setNbGraine(nbGraine);
+                    f.setQteGraines(x+1,y+1, nbGraine);
+                    if(!isMur && Math.random()>0.9){
+                        t.ajouteFourmi(x,y,false);
+                        f.ajouteFourmi(x+1,y+1);
+                    }
+                }
+            }
+            nbIteProperty.set(0);
         });
         root.getVitesseSim().getValueProperty().addListener(new ChangeListener<Number>() {
             @Override
@@ -226,6 +255,7 @@ public class Controlleur extends Application {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                 t.setSize(newValue.intValue());
+                f.changeSize(newValue.intValue());
             }
         });
         root.getCapCase().getValueProperty().addListener(new ChangeListener<Number>() {

@@ -203,9 +203,6 @@ public class Terrain extends Pane {
                     linesx.get(size).styleProperty().bind(lineStyleBinding);
                     linesy.get(size).styleProperty().bind(lineStyleBinding);
                 }
-                else{
-
-                }
                 for (int i = size+1; i <= newSize; i++) {
 
                     Line ly = linesy.get(i);
@@ -219,8 +216,8 @@ public class Terrain extends Pane {
             } else {
                 for (int i = newSize; i <= size; i++) {
                     if(i == newSize){
-                        linesx.get(newSize).styleProperty().bind(lineStyleBinding);
-                        linesy.get(newSize).styleProperty().bind(lineStyleBinding);
+                        linesx.get(newSize).styleProperty().unbind();
+                        linesy.get(newSize).styleProperty().unbind();
                     }
                     else{
                         this.getChildren().removeAll(linesy.get(i), linesx.get(i));
