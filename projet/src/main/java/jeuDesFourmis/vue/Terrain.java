@@ -5,12 +5,12 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Terrain extends Pane {
@@ -18,7 +18,7 @@ public class Terrain extends Pane {
     private PausedBinding pausedBinding;
     private Case derniereCase = null;
     private final int minSize = 20;
-    private final int maxSize = 100;
+    private final int maxSize;
     private final int defSize = 500;
     private final int tailleCase = 10;
 
@@ -38,8 +38,9 @@ public class Terrain extends Pane {
 
     private SimpleIntegerProperty maxNbGraine;
 
-    public Terrain() {
+    public Terrain(int maxSize) {
         super();
+        this.maxSize = maxSize;
         this.sizeProperty = new SimpleIntegerProperty(0);
         this.pausedBinding = new PausedBinding();
         this.maxNbGraine = new SimpleIntegerProperty(10);
@@ -47,7 +48,7 @@ public class Terrain extends Pane {
         this.cases = new Case[maxSize][maxSize];
         for (int x = 0; x < maxSize; x++) {
             for (int y = 0; y < maxSize; y++) {
-                Case c = new Case(x * 10, y * 10, maxNbGraine);
+                Case c = new Case(x * 10, y * 10, maxNbGraine,10);
                 this.cases[x][y] = c;
             }
         }
@@ -107,7 +108,7 @@ public class Terrain extends Pane {
     }
 
     public void ajouteFourmi(int x,int y, boolean porte){
-        Fourmi f = new Fourmi(x*10+5, y*10+5);
+        Fourmi f = new Fourmi(x*10+5, y*10+5,3);
         f.setPorteGraine(porte);
         this.getChildren().add(f);
         fourmis.add(f);
@@ -145,6 +146,9 @@ public class Terrain extends Pane {
     public boolean contientFourmi(int x, int y){
         return fourmis.stream().anyMatch(fourmi -> fourmi.getY() == x && fourmi.getY() == y);
     }
+    public Optional<Fourmi> getFourmi(int x, int y){
+        return fourmis.stream().filter(fourmi -> fourmi.getY() == x*10+5 && fourmi.getY() == y*10+5).findFirst();
+    }
 
     public void enleveFourmi(int x, int y){
         List<Fourmi> frm = fourmis.stream().filter(fourmi -> fourmi.getY() == x && fourmi.getY() == y).collect(Collectors.toList());
@@ -153,8 +157,7 @@ public class Terrain extends Pane {
     }
 
     public void resetFourmis(){
-        this.
-        getChildren().removeAll(fourmis);
+        this.getChildren().removeAll(fourmis);
         fourmis = new ArrayList<>();
     }
     public void setSize(int newSize){
@@ -172,8 +175,10 @@ public class Terrain extends Pane {
                 for (int x = 0; x < size; x++) {
                     for (int y = 0; y < size; y++) {
                         if(x >= newSize ||y >= newSize) {
-                            this.cases[x][y].setMur(false);
-                            this.getChildren().remove(this.cases[x][y]);
+                            Case c = this.cases[x][y];
+                            c.setMur(false);
+                            c.setNbGraine(0);
+                            this.getChildren().remove(c);
                         }
                     }
                 }

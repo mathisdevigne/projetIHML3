@@ -18,10 +18,12 @@ public class Case extends Rectangle {
     SimpleIntegerProperty maxNbGraines;
 
     SimpleBooleanProperty isMur;
-    public Case(double layoutx, double layouty, SimpleIntegerProperty maxNbGraine) {
+    SimpleBooleanProperty isBordLoupe;
+    public Case(double layoutx, double layouty, SimpleIntegerProperty maxNbGraine, int size) {
         super();
         this.nbGraines = new SimpleIntegerProperty(0);
         this.isMur = new SimpleBooleanProperty(false);
+        this.isBordLoupe = new SimpleBooleanProperty(false);
         this.setLayoutX(layoutx);
         this.setLayoutY(layouty);
         this.setViewOrder(1);
@@ -37,16 +39,16 @@ public class Case extends Rectangle {
         });
         this.styleProperty().bind(new StringBinding() {
             {
-                bind(maxNbGraines, nbGraines, isMur);
+                bind(maxNbGraines, nbGraines, isMur,isBordLoupe);
             }
             @Override
             protected String computeValue() {
                 double mult = (double)nbGraines.get()/(double)maxNbGraines.get();
-                return "-fx-fill:" + (isMur.get()? "black": "rgb(" + (255-(mult*50))+"," + (255-(mult* 255))+","+ (255-(mult*255))+")")+";";
+                return "-fx-fill:" + (isBordLoupe.get()?"grey":(isMur.get()? "black": "rgb(" + (255-(mult*50))+"," + (255-(mult* 255))+","+ (255-(mult*255))+")"))+";";
             }
         });
-        this.setHeight(10);
-        this.setWidth(10);
+        this.setHeight(size);
+        this.setWidth(size);
 
     }
 
@@ -62,11 +64,18 @@ public class Case extends Rectangle {
         isMur.set(b);
     }
 
+    public boolean isBordLoupe(){return isBordLoupe.get();}
+
+    public void setIsBordLoupe(boolean b) {
+        isBordLoupe.set(b);
+    }
+
     public void setNbGraine(int n){
         if(n >= 0 && n <= maxNbGraines.get()){
             nbGraines.set(n);
         }
     }
+
 
     public int getNbGraines() {
         return nbGraines.get();

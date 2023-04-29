@@ -28,14 +28,23 @@ public class Interface extends BorderPane {
     private final SliderBetter capCase;
     private final SliderBetter vitesseSim;
 
+    private final Button bouttonTailleJeu;
+
     private final Button reset;
 
     private final Button resetAlea;
 
+    private final int MAXSIZE = 100;
+
+    public Button getBouttonTailleJeu() {
+        return bouttonTailleJeu;
+    }
+
     public Interface(int qGraineMax) {
         super();
-        this.terrain = new Terrain();
+        this.terrain = new Terrain(MAXSIZE);
         this.setCenter(this.terrain);
+        this.bouttonTailleJeu = new Button("Actualiser la taille");
 
         Label titre = new Label();
         titre.textProperty().bind(new StringBinding() {
@@ -55,7 +64,14 @@ public class Interface extends BorderPane {
         nbFourmis = new Label("fourmis : 0");
         nbIte = new Label("ite : 0");
         loupe = new Button("Loupe");
-        playPause = new Button("Play/Pause");
+        playPause = new Button();
+        playPause.textProperty().bind(new StringBinding() {
+            {bind(terrain.pausedBindingProperty());}
+            @Override
+            protected String computeValue() {
+                return terrain.pausedBindingProperty().get() ? "Play":"Pause";
+            }
+        });
         VBox left = new VBox(nbGraine, nbFourmis, nbIte, loupe, playPause);
         left.setAlignment(Pos.CENTER);
         left.spacingProperty().bind(this.terrain.heightProperty().divide(7));
@@ -65,9 +81,12 @@ public class Interface extends BorderPane {
         tailleJeu = new SliderBetter("Taille du jeu", 20, 100, 50);
         capCase = new SliderBetter("Capacité des cases", 1, 100, qGraineMax);
         reset = new Button("Reset");
-        resetAlea = new Button("Reset alea");
+        resetAlea = new Button("Reset aléatoirement");
         vitesseSim = new SliderBetter("Vitesse de la simulation", 1, 10, 1);
-        VBox right = new VBox(tailleJeu, capCase, reset, resetAlea, vitesseSim);
+        VBox taille = new VBox(tailleJeu, bouttonTailleJeu);
+        taille.setSpacing(10);
+        taille.setAlignment(Pos.CENTER);
+        VBox right = new VBox(taille, capCase, reset, resetAlea, vitesseSim);
         right.setAlignment(Pos.CENTER);
         BorderPane.setMargin(right, new Insets(15));
         right.spacingProperty().bind(this.terrain.heightProperty().divide(7));
@@ -76,6 +95,7 @@ public class Interface extends BorderPane {
         left.prefWidthProperty().bind(right.widthProperty());
 
         tailleJeu.visibleProperty().bind(terrain.pausedBindingProperty());
+        bouttonTailleJeu.visibleProperty().bind(terrain.pausedBindingProperty());
         tailleJeu.getValueProperty().addListener((obs, oldval, newVal) ->
                 tailleJeu.getValueProperty().setValue(newVal.intValue()));
 

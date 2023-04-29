@@ -1,5 +1,7 @@
 package jeuDesFourmis.model;
 
+import jeuDesFourmis.vue.Case;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Iterator;
@@ -77,6 +79,7 @@ public class Fourmiliere {
   }
 
   public void changeSize( int size){
+      int oldSize = this.largeur;
       this.largeur = size;
       this.hauteur = size;
       List<Fourmi> plusFourmi = lesFourmis.stream().filter(fourmi -> fourmi.getY()>size||fourmi.getX()>size).collect(Collectors.toList());
@@ -84,6 +87,16 @@ public class Fourmiliere {
           this.fourmis[fourmi.getX()][fourmi.getY()] = false;
       });
       lesFourmis.removeAll(plusFourmi);
+      if(oldSize>size){
+          for (int x = 0; x <= oldSize; x++) {
+              for (int y = 0; y <= oldSize; y++) {
+                  if(x > size ||y > size) {
+                      this.murs[x][y] = false;
+                      this.qteGraines[x][y]=0;
+                  }
+              }
+          }
+      }
   }
   /**
    * Retourne la largeur de la fourmiliere

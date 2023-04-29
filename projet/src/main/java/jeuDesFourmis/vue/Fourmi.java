@@ -13,17 +13,26 @@ public class Fourmi extends Circle {
         return x;
     }
 
+    @Override
+    public String toString() {
+        return "Fourmi{" +
+                "x=" + x +
+                ", y=" + y +
+                ", porteGraine=" + porteGraine +
+                '}';
+    }
+
     public int getY() {
         return y;
     }
 
-    public Fourmi(int x, int y){
+    public Fourmi(int x, int y, int radius){
         super();
         this.x = x;
         this.y = y;
         this.setLayoutX(x);
         this.setLayoutY(y);
-        this.setRadius(3);
+        this.setRadius(radius);
         this.setPorteGraine(false);
     }
 
